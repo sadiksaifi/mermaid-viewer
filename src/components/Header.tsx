@@ -1,0 +1,46 @@
+import { Button } from "@/components/ui/button";
+import { Download, Copy, FileText } from "lucide-react";
+
+interface HeaderProps {
+  onDownloadImage: () => void;
+  onCopyImage: () => void;
+  onCopyText: () => void;
+}
+
+export function Header({ onDownloadImage, onCopyImage, onCopyText }: HeaderProps) {
+  return (
+    <header className="h-16 border-b border-border flex items-center justify-between px-6 bg-background">
+      <h1 className="text-xl font-semibold text-foreground">Mermaid Viewer</h1>
+      <div className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onDownloadImage}
+          className="gap-2"
+        >
+          <Download className="size-4" />
+          Download Image
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onCopyImage}
+          className="gap-2"
+        >
+          <Copy className="size-4" />
+          Copy Image
+        </Button>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={onCopyText}
+          className="gap-2"
+        >
+          <FileText className="size-4" />
+          Copy as Text Diagram
+        </Button>
+      </div>
+    </header>
+  );
+}
+
