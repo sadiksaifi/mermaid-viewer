@@ -2,6 +2,7 @@ import { useState, useRef, useCallback } from "react";
 import { Header } from "@/components/Header";
 import { MermaidEditor } from "@/components/MermaidEditor";
 import { MermaidViewer } from "@/components/MermaidViewer";
+import { ThemeProvider } from "@/components/theme-provider"
 
 const DEFAULT_DIAGRAM = `graph TD
     A[Start] --> B{Decision}
@@ -124,17 +125,19 @@ function App() {
   };
 
   return (
+    <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
     <div className="h-screen flex flex-col overflow-hidden">
       <Header
         onDownloadImage={handleDownloadImage}
         onCopyImage={handleCopyImage}
         onCopyText={handleCopyText}
       />
-      <div className="flex-1 grid grid-cols-2 overflow-hidden">
+      <div className="flex-1 grid grid-cols-[40%_60%] overflow-hidden">
         <MermaidEditor value={diagram} onChange={setDiagram} />
         <MermaidViewer diagram={diagram} onRenderComplete={handleRenderComplete} />
       </div>
     </div>
+    </ThemeProvider>
   );
 }
 

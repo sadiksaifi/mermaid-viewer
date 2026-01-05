@@ -10,6 +10,7 @@ interface MermaidViewerProps {
 export function MermaidViewer({ diagram, onRenderComplete }: MermaidViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mermaidRef = useRef<HTMLDivElement>(null);
+  const contentRef = useRef<HTMLDivElement>(null);
   const [isRendering, setIsRendering] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -20,6 +21,21 @@ export function MermaidViewer({ diagram, onRenderComplete }: MermaidViewerProps)
       theme: "default",
       securityLevel: "loose",
     });
+  }, []);
+
+  // Ensure content fills the viewport for panning
+  useEffect(() => {
+    const updateContentSize = () => {
+      if (containerRef.current && contentRef.current) {
+        const containerRect = containerRef.current.getBoundingClientRect();
+        contentRef.current.style.minWidth = `${containerRect.width}px`;
+        contentRef.current.style.minHeight = `${containerRect.height}px`;
+      }
+    };
+
+    updateContentSize();
+    window.addEventListener("resize", updateContentSize);
+    return () => window.removeEventListener("resize", updateContentSize);
   }, []);
 
   // Render Mermaid diagram
@@ -94,7 +110,7 @@ export function MermaidViewer({ diagram, onRenderComplete }: MermaidViewerProps)
   }, [diagram, onRenderComplete]);
 
   return (
-    <div ref={containerRef} className="h-full w-full bg-background overflow-hidden">
+    <div ref={containerRef} className="h-full w-full overflow-hidden">
       <TransformWrapper
         initialScale={1}
         minScale={0.1}
@@ -107,7 +123,7 @@ export function MermaidViewer({ diagram, onRenderComplete }: MermaidViewerProps)
         {({ zoomIn, zoomOut, resetTransform }) => (
           <>
             {/* Zoom Controls */}
-            <div className="absolute top-4 right-4 z-10 flex flex-col gap-2">
+            <div className="absolute top-20 right-4 z-10 flex flex-col gap-2">
               <button
                 onClick={() => zoomIn()}
                 className="px-3 py-2 bg-background border border-border rounded-md shadow-sm hover:bg-accent text-sm font-medium"
@@ -132,10 +148,14 @@ export function MermaidViewer({ diagram, onRenderComplete }: MermaidViewerProps)
             </div>
 
             <TransformComponent
-              wrapperClass="h-full w-full"
-              contentClass="flex items-center justify-center min-h-full min-w-full p-8"
+              wrapperClass="h-full w-full bg-background"
+              contentClass="flex items-center justify-center"
             >
-              <div className="flex items-center justify-center relative">
+              <div 
+                ref={contentRef}
+                className="flex items-center justify-center relative"
+                style={{ width: "100%", height: "100%" }}
+              >
                 {/* Always render the mermaid container to keep ref attached */}
                 <div
                   ref={mermaidRef}
