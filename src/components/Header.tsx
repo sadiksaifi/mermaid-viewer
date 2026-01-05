@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button";
-import { Download, Copy, FileText } from "lucide-react";
+import { Download, Copy } from "lucide-react";
 import { ModeToggle } from "./mode-toggle";
 
 interface HeaderProps {
@@ -11,7 +11,6 @@ interface HeaderProps {
 export function Header({
   onDownloadImage,
   onCopyImage,
-  onCopyText,
 }: HeaderProps) {
   return (
     <header className="h-16 border-b border-border flex items-center justify-between px-6 bg-background">
@@ -39,15 +38,6 @@ export function Header({
         >
           <Copy className="size-4" />
           Copy Image
-        </Button>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={onCopyText}
-          className="gap-2"
-        >
-          <FileText className="size-4" />
-          Copy as Text Diagram
         </Button>
       </div>
     </header>
