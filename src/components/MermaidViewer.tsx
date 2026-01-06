@@ -1,13 +1,17 @@
 import { useEffect, useRef, useState } from "react";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import mermaid from "mermaid";
+import { ZOOM_CONFIG } from "../config";
 
 interface MermaidViewerProps {
   diagram: string;
   onRenderComplete?: (svgElement: SVGSVGElement | null) => void;
 }
 
-export function MermaidViewer({ diagram, onRenderComplete }: MermaidViewerProps) {
+export function MermaidViewer({
+  diagram,
+  onRenderComplete,
+}: MermaidViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mermaidRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -44,8 +48,8 @@ export function MermaidViewer({ diagram, onRenderComplete }: MermaidViewerProps)
 
     const renderDiagram = async () => {
       // Small delay to ensure DOM is ready
-      await new Promise(resolve => setTimeout(resolve, 50));
-      
+      await new Promise((resolve) => setTimeout(resolve, 50));
+
       if (!isMounted || !mermaidRef.current) {
         return;
       }
@@ -76,15 +80,15 @@ export function MermaidViewer({ diagram, onRenderComplete }: MermaidViewerProps)
 
         // Render the diagram
         const { svg } = await mermaid.render(id, diagram);
-        
+
         // Check if component is still mounted and ref is still valid
         if (!isMounted || !mermaidRef.current) {
           setIsRendering(false);
           return;
         }
-        
+
         mermaidRef.current.innerHTML = svg;
-        
+
         // Find the rendered SVG element
         const svgElement = mermaidRef.current?.querySelector("svg") || null;
         onRenderComplete?.(svgElement);
@@ -92,8 +96,9 @@ export function MermaidViewer({ diagram, onRenderComplete }: MermaidViewerProps)
         setIsRendering(false);
       } catch (err) {
         if (!isMounted) return;
-        
-        const errorMessage = err instanceof Error ? err.message : "Failed to render diagram";
+
+        const errorMessage =
+          err instanceof Error ? err.message : "Failed to render diagram";
         setError(errorMessage);
         setIsRendering(false);
         onRenderComplete?.(null);
@@ -102,7 +107,7 @@ export function MermaidViewer({ diagram, onRenderComplete }: MermaidViewerProps)
 
     // Debounce rendering to avoid excessive re-renders
     const timeoutId = setTimeout(renderDiagram, 300);
-    
+
     return () => {
       isMounted = false;
       clearTimeout(timeoutId);
@@ -112,10 +117,17 @@ export function MermaidViewer({ diagram, onRenderComplete }: MermaidViewerProps)
   return (
     <div ref={containerRef} className="h-full w-full overflow-hidden">
       <TransformWrapper
-        initialScale={1}
-        minScale={0.1}
-        maxScale={4}
-        wheel={{ step: 0.1 }}
+        initialScale={ZOOM_CONFIG.initialScale}
+        minScale={ZOOM_CONFIG.minScale}
+        maxScale={ZOOM_CONFIG.maxScale}
+        wheel={{
+          step: ZOOM_CONFIG.wheelStep,
+          smoothStep: ZOOM_CONFIG.wheelSmoothStep,
+        }}
+        zoomAnimation={{
+          animationTime: ZOOM_CONFIG.animationTime,
+          animationType: "easeOut",
+        }}
         panning={{ disabled: false }}
         doubleClick={{ disabled: false }}
         centerOnInit={true}
@@ -125,14 +137,14 @@ export function MermaidViewer({ diagram, onRenderComplete }: MermaidViewerProps)
             {/* Zoom Controls */}
             <div className="absolute top-20 right-4 z-10 flex flex-col gap-2">
               <button
-                onClick={() => zoomIn()}
+                onClick={() => zoomIn(ZOOM_CONFIG.buttonStep)}
                 className="px-3 py-2 bg-background border border-border rounded-md shadow-sm hover:bg-accent text-sm font-medium"
                 title="Zoom In"
               >
                 +
               </button>
               <button
-                onClick={() => zoomOut()}
+                onClick={() => zoomOut(ZOOM_CONFIG.buttonStep)}
                 className="px-3 py-2 bg-background border border-border rounded-md shadow-sm hover:bg-accent text-sm font-medium"
                 title="Zoom Out"
               >
@@ -151,7 +163,7 @@ export function MermaidViewer({ diagram, onRenderComplete }: MermaidViewerProps)
               wrapperClass="h-full w-full bg-background"
               contentClass="flex items-center justify-center"
             >
-              <div 
+              <div
                 ref={contentRef}
                 className="flex items-center justify-center relative"
                 style={{ width: "100%", height: "100%" }}
@@ -160,7 +172,11 @@ export function MermaidViewer({ diagram, onRenderComplete }: MermaidViewerProps)
                 <div
                   ref={mermaidRef}
                   className="mermaid-container"
-                  style={{ display: "flex", alignItems: "center", justifyContent: "center" }}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
                 />
                 {/* Overlay states */}
                 {isRendering && (
@@ -184,4 +200,3 @@ export function MermaidViewer({ diagram, onRenderComplete }: MermaidViewerProps)
     </div>
   );
 }
-
