@@ -5,6 +5,7 @@ import { MermaidViewer } from "@/components/MermaidViewer";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
+import { EXPORT_CONFIG } from "./config";
 
 const DEFAULT_DIAGRAM = `graph TD
     A[Start] --> B{Decision}
@@ -24,19 +25,47 @@ function App() {
     []
   );
 
-  const svgToImage = async (svgElement: SVGSVGElement): Promise<Blob> => {
-    const svgData = new XMLSerializer().serializeToString(svgElement);
-    const svgBlob = new Blob([svgData], {
-      type: "image/svg+xml;charset=utf-8",
+  const svgToImage = async (
+    svgElement: SVGSVGElement,
+    scale: number = EXPORT_CONFIG.scale
+  ): Promise<Blob> => {
+    // Clone the SVG to avoid modifying the original
+    const clonedSvg = svgElement.cloneNode(true) as SVGSVGElement;
+
+    // Get dimensions from the original SVG
+    const bbox = svgElement.getBBox();
+    const width = svgElement.width.baseVal.value || bbox.width + bbox.x * 2;
+    const height = svgElement.height.baseVal.value || bbox.height + bbox.y * 2;
+
+    // Set explicit dimensions on the cloned SVG (scaled up for higher resolution)
+    clonedSvg.setAttribute("width", String(width * scale));
+    clonedSvg.setAttribute("height", String(height * scale));
+
+    // Remove external font references that cause canvas tainting
+    const styleElements = clonedSvg.querySelectorAll("style");
+    styleElements.forEach((style) => {
+      style.textContent = (style.textContent || "")
+        .replace(/@import[^;]+;/g, "")
+        .replace(/@font-face\s*\{[^}]*url\s*\([^)]*https?:[^}]*\}/g, "");
     });
-    const svgUrl = URL.createObjectURL(svgBlob);
+
+    // Add xmlns attribute if missing (required for standalone SVG)
+    if (!clonedSvg.getAttribute("xmlns")) {
+      clonedSvg.setAttribute("xmlns", "http://www.w3.org/2000/svg");
+    }
+
+    // Serialize the cleaned SVG and convert to data URL (same-origin, avoids tainting)
+    const svgData = new XMLSerializer().serializeToString(clonedSvg);
+    const svgBase64 = btoa(unescape(encodeURIComponent(svgData)));
+    const svgUrl = `data:image/svg+xml;base64,${svgBase64}`;
 
     return new Promise((resolve, reject) => {
       const img = new Image();
+
       img.onload = () => {
         const canvas = document.createElement("canvas");
-        canvas.width = img.width;
-        canvas.height = img.height;
+        canvas.width = (width || img.width) * scale;
+        canvas.height = (height || img.height) * scale;
         const ctx = canvas.getContext("2d");
 
         if (!ctx) {
@@ -47,9 +76,7 @@ function App() {
         // Fill white background for better export
         ctx.fillStyle = "white";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-
         ctx.drawImage(img, 0, 0);
-        URL.revokeObjectURL(svgUrl);
 
         canvas.toBlob((blob) => {
           if (blob) {
@@ -59,10 +86,11 @@ function App() {
           }
         }, "image/png");
       };
+
       img.onerror = () => {
-        URL.revokeObjectURL(svgUrl);
         reject(new Error("Failed to load SVG"));
       };
+
       img.src = svgUrl;
     });
   };

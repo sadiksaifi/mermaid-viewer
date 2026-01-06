@@ -7,3 +7,7 @@ export const ZOOM_CONFIG = {
   buttonStep: 0.5,
   animationTime: 200,
 } as const;
+
+export const EXPORT_CONFIG = {
+  scale: 4,
+} as const;
