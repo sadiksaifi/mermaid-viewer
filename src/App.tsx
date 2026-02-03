@@ -6,6 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { EXPORT_CONFIG } from "./config";
+import { renderMermaidAscii } from "beautiful-mermaid";
 
 const DEFAULT_DIAGRAM = `graph TD
     A[Start] --> B{Decision}
@@ -128,13 +129,13 @@ function App() {
     }
   };
 
-  const handleCopyImage = async () => {
+  const handleCopyImage = async (): Promise<boolean> => {
     if (!svgElementRef.current) {
       toast.error("Oops! No diagram to copy.", {
         description:
           "No diagram to copy. Please ensure the diagram is rendered correctly.",
       });
-      return;
+      return false;
     }
 
     try {
@@ -146,9 +147,7 @@ function App() {
             "image/png": blob,
           }),
         ]);
-        toast.success("Success!", {
-          description: "Image copied to clipboard!",
-        });
+        return true;
       } else {
         throw new Error("Clipboard API not available");
       }
@@ -157,6 +156,7 @@ function App() {
       toast.error("Oops! Failed to copy image.", {
         description: "Your browser may not support this feature.",
       });
+      return false;
     }
   };
 
@@ -177,6 +177,25 @@ function App() {
       });
   };
 
+  const handleCopyAscii = async (): Promise<boolean> => {
+    if (!diagram.trim()) {
+      toast.error("No diagram to copy.");
+      return false;
+    }
+
+    try {
+      const ascii = await renderMermaidAscii(diagram);
+      await navigator.clipboard.writeText(ascii);
+      return true;
+    } catch (error) {
+      console.error("Failed to generate ASCII:", error);
+      toast.error("Oops! Failed to generate ASCII.", {
+        description: "Could not convert this diagram to ASCII.",
+      });
+      return false;
+    }
+  };
+
   return (
     <ThemeProvider defaultTheme="system" storageKey="vite-ui-theme">
       <div className="h-screen flex flex-col overflow-hidden">
@@ -184,6 +203,7 @@ function App() {
           onDownloadImage={handleDownloadImage}
           onCopyImage={handleCopyImage}
           onCopyText={handleCopyText}
+          onCopyAscii={handleCopyAscii}
         />
         <div
           className={`flex-1 grid overflow-hidden transition-all duration-300 ease-in-out ${
