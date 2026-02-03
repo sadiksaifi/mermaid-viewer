@@ -52,14 +52,59 @@ function App() {
     // Clone the SVG to avoid modifying the original
     const clonedSvg = svgElement.cloneNode(true) as SVGSVGElement;
 
-    // Get dimensions from the original SVG
-    const bbox = svgElement.getBBox();
-    const width = svgElement.width.baseVal.value || bbox.width + bbox.x * 2;
-    const height = svgElement.height.baseVal.value || bbox.height + bbox.y * 2;
+    // Get dimensions using viewBox (preferred) or getBBox to ensure we get the full content size
+    // and not just the displayed size (which might be constrained by container)
+    const viewBox = svgElement.viewBox.baseVal;
+    let sourceWidth = viewBox?.width;
+    let sourceHeight = viewBox?.height;
+    let sourceX = viewBox?.x ?? 0;
+    let sourceY = viewBox?.y ?? 0;
 
-    // Set explicit dimensions on the cloned SVG (scaled up for higher resolution)
-    clonedSvg.setAttribute("width", String(width * scale));
-    clonedSvg.setAttribute("height", String(height * scale));
+    // Fallback to getBBox if viewBox is missing/empty
+    if (!sourceWidth || !sourceHeight) {
+      const bbox = svgElement.getBBox();
+      sourceWidth = bbox.width;
+      sourceHeight = bbox.height;
+      sourceX = bbox.x;
+      sourceY = bbox.y;
+      
+      // Update viewBox to match the bbox if we had to fallback
+      clonedSvg.setAttribute("viewBox", `${sourceX} ${sourceY} ${sourceWidth} ${sourceHeight}`);
+    }
+
+    // Last fallback to attributes
+    if (!sourceWidth || !sourceHeight) {
+      sourceWidth = svgElement.width.baseVal.value;
+      sourceHeight = svgElement.height.baseVal.value;
+    }
+
+    // Remove any style constraints (like max-width) that Mermaid might add
+    clonedSvg.style.maxWidth = "none";
+    clonedSvg.style.maxHeight = "none";
+    
+    // Ensure the SVG scales to fill our new canvas
+    clonedSvg.setAttribute("width", "100%");
+    clonedSvg.setAttribute("height", "100%");
+
+    // Calculate target dimensions with a safety cap to prevent canvas crashes
+    const MAX_DIMENSION = 10000;
+    let targetWidth = sourceWidth * scale;
+    let targetHeight = sourceHeight * scale;
+
+    if (targetWidth > MAX_DIMENSION || targetHeight > MAX_DIMENSION) {
+      const aspect = targetWidth / targetHeight;
+      if (targetWidth > targetHeight) {
+        targetWidth = MAX_DIMENSION;
+        targetHeight = MAX_DIMENSION / aspect;
+      } else {
+        targetHeight = MAX_DIMENSION;
+        targetWidth = MAX_DIMENSION * aspect;
+      }
+    }
+
+    // Set explicit dimensions on the cloned SVG for serialization
+    clonedSvg.setAttribute("width", String(targetWidth));
+    clonedSvg.setAttribute("height", String(targetHeight));
 
     // Remove external font references that cause canvas tainting
     const styleElements = clonedSvg.querySelectorAll("style");
@@ -84,8 +129,8 @@ function App() {
 
       img.onload = () => {
         const canvas = document.createElement("canvas");
-        canvas.width = (width || img.width) * scale;
-        canvas.height = (height || img.height) * scale;
+        canvas.width = targetWidth;
+        canvas.height = targetHeight;
         const ctx = canvas.getContext("2d");
 
         if (!ctx) {
@@ -96,7 +141,9 @@ function App() {
         // Fill white background for better export
         ctx.fillStyle = "white";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        ctx.drawImage(img, 0, 0);
+        
+        // Draw the image filling the canvas
+        ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
 
         canvas.toBlob((blob) => {
           if (blob) {
