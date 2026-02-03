@@ -1,7 +1,7 @@
 export const ZOOM_CONFIG = {
   initialScale: 1,
   minScale: 0.1,
-  maxScale: 8,
+  maxScale: 50,
   wheelStep: 0.2,
   wheelSmoothStep: 0.01,
   buttonStep: 0.5,

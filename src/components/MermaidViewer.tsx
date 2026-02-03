@@ -1,22 +1,28 @@
 import { useEffect, useRef, useState } from "react";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import mermaid from "mermaid";
+import { Maximize, Minimize } from "lucide-react";
 import { ZOOM_CONFIG } from "../config";
 
 interface MermaidViewerProps {
   diagram: string;
   onRenderComplete?: (svgElement: SVGSVGElement | null) => void;
+  isFullscreen?: boolean;
+  onToggleFullscreen?: () => void;
 }
 
 export function MermaidViewer({
   diagram,
   onRenderComplete,
+  isFullscreen = false,
+  onToggleFullscreen,
 }: MermaidViewerProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mermaidRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const [isRendering, setIsRendering] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentScale, setCurrentScale] = useState<number>(ZOOM_CONFIG.initialScale);
 
   // Initialize Mermaid
   useEffect(() => {
@@ -38,8 +44,18 @@ export function MermaidViewer({
     };
 
     updateContentSize();
-    window.addEventListener("resize", updateContentSize);
-    return () => window.removeEventListener("resize", updateContentSize);
+
+    const resizeObserver = new ResizeObserver(() => {
+      updateContentSize();
+    });
+
+    if (containerRef.current) {
+      resizeObserver.observe(containerRef.current);
+    }
+
+    return () => {
+      resizeObserver.disconnect();
+    };
   }, []);
 
   // Render Mermaid diagram
@@ -115,14 +131,15 @@ export function MermaidViewer({
   }, [diagram, onRenderComplete]);
 
   return (
-    <div ref={containerRef} className="h-full w-full overflow-hidden">
+    <div ref={containerRef} className="h-full w-full overflow-hidden bg-background">
       <TransformWrapper
         initialScale={ZOOM_CONFIG.initialScale}
         minScale={ZOOM_CONFIG.minScale}
         maxScale={ZOOM_CONFIG.maxScale}
+        onTransformed={(e) => setCurrentScale(e.state.scale)}
         wheel={{
-          step: ZOOM_CONFIG.wheelStep,
-          smoothStep: ZOOM_CONFIG.wheelSmoothStep,
+          step: Math.max(currentScale * ZOOM_CONFIG.wheelStep, 0.1),
+          smoothStep: Math.max(currentScale * ZOOM_CONFIG.wheelSmoothStep, 0.001),
         }}
         zoomAnimation={{
           animationTime: ZOOM_CONFIG.animationTime,
@@ -137,14 +154,14 @@ export function MermaidViewer({
             {/* Zoom Controls */}
             <div className="absolute top-20 right-4 z-10 flex flex-col gap-2">
               <button
-                onClick={() => zoomIn(ZOOM_CONFIG.buttonStep)}
+                onClick={() => zoomIn(currentScale * ZOOM_CONFIG.buttonStep)}
                 className="px-3 py-2 bg-background border border-border rounded-md shadow-sm hover:bg-accent text-sm font-medium"
                 title="Zoom In"
               >
                 +
               </button>
               <button
-                onClick={() => zoomOut(ZOOM_CONFIG.buttonStep)}
+                onClick={() => zoomOut(currentScale * ZOOM_CONFIG.buttonStep)}
                 className="px-3 py-2 bg-background border border-border rounded-md shadow-sm hover:bg-accent text-sm font-medium"
                 title="Zoom Out"
               >
@@ -157,6 +174,19 @@ export function MermaidViewer({
               >
                 ↻
               </button>
+              {onToggleFullscreen && (
+                <button
+                  onClick={onToggleFullscreen}
+                  className="px-3 py-2 bg-background border border-border rounded-md shadow-sm hover:bg-accent text-sm font-medium flex items-center justify-center"
+                  title={isFullscreen ? "Exit Full Screen" : "Full Screen"}
+                >
+                  {isFullscreen ? (
+                    <Minimize className="h-4 w-4" />
+                  ) : (
+                    <Maximize className="h-4 w-4" />
+                  )}
+                </button>
+              )}
             </div>
 
             <TransformComponent

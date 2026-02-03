@@ -16,6 +16,7 @@ const DEFAULT_DIAGRAM = `graph TD
 
 function App() {
   const [diagram, setDiagram] = useState(DEFAULT_DIAGRAM);
+  const [isViewerFullscreen, setIsViewerFullscreen] = useState(false);
   const svgElementRef = useRef<SVGSVGElement | null>(null);
 
   const handleRenderComplete = useCallback(
@@ -24,6 +25,10 @@ function App() {
     },
     []
   );
+
+  const toggleFullscreen = useCallback(() => {
+    setIsViewerFullscreen((prev) => !prev);
+  }, []);
 
   const svgToImage = async (
     svgElement: SVGSVGElement,
@@ -180,11 +185,19 @@ function App() {
           onCopyImage={handleCopyImage}
           onCopyText={handleCopyText}
         />
-        <div className="flex-1 grid grid-cols-[40%_60%] overflow-hidden">
-          <MermaidEditor value={diagram} onChange={setDiagram} />
+        <div
+          className={`flex-1 grid overflow-hidden transition-all duration-300 ease-in-out ${
+            isViewerFullscreen ? "grid-cols-1" : "grid-cols-[40%_60%]"
+          }`}
+        >
+          {!isViewerFullscreen && (
+            <MermaidEditor value={diagram} onChange={setDiagram} />
+          )}
           <MermaidViewer
             diagram={diagram}
             onRenderComplete={handleRenderComplete}
+            isFullscreen={isViewerFullscreen}
+            onToggleFullscreen={toggleFullscreen}
           />
         </div>
       </div>
