@@ -13,6 +13,8 @@ import { toast } from "sonner";
 import { EXPORT_CONFIG } from "./config";
 import { renderMermaidAscii } from "beautiful-mermaid";
 import type { ImperativePanelHandle } from "react-resizable-panels";
+import { cn } from "./lib/utils";
+import mermaid from "mermaid";
 
 const DEFAULT_DIAGRAM = `graph TD
     A[Start] --> B{Decision}
@@ -46,6 +48,41 @@ function App() {
     }
   }, [isViewerFullscreen]);
 
+  const renderLightMermaid = async (
+    diagramText: string,
+  ): Promise<SVGSVGElement> => {
+    const isDark =
+      theme === "dark" ||
+      (theme === "system" &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches);
+    const currentTheme = isDark ? "dark" : "default";
+
+    // Initialize with default (light) theme for export
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: "default",
+      securityLevel: "loose",
+      fontFamily: "Inter, -apple-system, sans-serif",
+    });
+
+    try {
+      const id = `mermaid-export-${Date.now()}`;
+      const { svg } = await mermaid.render(id, diagramText);
+
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(svg, "image/svg+xml");
+      return doc.documentElement as unknown as SVGSVGElement;
+    } finally {
+      // Restore the user's theme
+      mermaid.initialize({
+        startOnLoad: false,
+        theme: currentTheme,
+        securityLevel: "loose",
+        fontFamily: "Inter, -apple-system, sans-serif",
+      });
+    }
+  };
+
   const svgToImage = async (
     svgElement: SVGSVGElement,
     scale: number = EXPORT_CONFIG.scale,
@@ -63,24 +100,47 @@ function App() {
 
     // Fallback to getBBox if viewBox is missing/empty
     if (!sourceWidth || !sourceHeight) {
-      const bbox = svgElement.getBBox();
-      sourceWidth = bbox.width;
-      sourceHeight = bbox.height;
-      sourceX = bbox.x;
-      sourceY = bbox.y;
+      // Note: getBBox might fail if the element is not in the DOM
+      // Since we are using a fresh SVG from parser, we might need to append it briefly or rely on attributes
+      // But typically mermaid output has viewBox or width/height attributes.
+      try {
+        const bbox = svgElement.getBBox();
+        sourceWidth = bbox.width;
+        sourceHeight = bbox.height;
+        sourceX = bbox.x;
+        sourceY = bbox.y;
 
-      // Update viewBox to match the bbox if we had to fallback
-      clonedSvg.setAttribute(
-        "viewBox",
-        `${sourceX} ${sourceY} ${sourceWidth} ${sourceHeight}`,
-      );
+        // Update viewBox to match the bbox if we had to fallback
+        clonedSvg.setAttribute(
+          "viewBox",
+          `${sourceX} ${sourceY} ${sourceWidth} ${sourceHeight}`,
+        );
+      } catch (e) {
+        // If getBBox fails (e.g. element not in DOM), try attributes
+        console.warn("getBBox failed, falling back to attributes", e);
+      }
     }
 
     // Last fallback to attributes
     if (!sourceWidth || !sourceHeight) {
-      sourceWidth = svgElement.width.baseVal.value;
-      sourceHeight = svgElement.height.baseVal.value;
+      const w = svgElement.getAttribute("width");
+      const h = svgElement.getAttribute("height");
+      if (w) sourceWidth = parseFloat(w);
+      if (h) sourceHeight = parseFloat(h);
     }
+    
+    // If still no dimensions, try max-width/style (mermaid specific) or default
+    if (!sourceWidth || !sourceHeight) {
+        // Try to parse from style if available
+        const styleMaxWidth = svgElement.style.maxWidth;
+        if (styleMaxWidth && styleMaxWidth.endsWith('px')) {
+            sourceWidth = parseFloat(styleMaxWidth);
+        }
+        // If all else fails, default to a reasonable size or throw
+        if (!sourceWidth) sourceWidth = 800;
+        if (!sourceHeight) sourceHeight = 600;
+    }
+
 
     // Remove any style constraints (like max-width) that Mermaid might add
     clonedSvg.style.maxWidth = "none";
@@ -167,16 +227,14 @@ function App() {
   };
 
   const handleDownloadImage = async () => {
-    if (!svgElementRef.current) {
-      toast.error("Oops! No diagram to download.", {
-        description:
-          "No diagram to download. Please ensure the diagram is rendered correctly.",
-      });
+    if (!diagram.trim()) {
+      toast.error("Oops! No diagram to download.");
       return;
     }
 
     try {
-      const blob = await svgToImage(svgElementRef.current);
+      const lightSvg = await renderLightMermaid(diagram);
+      const blob = await svgToImage(lightSvg);
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
@@ -195,16 +253,14 @@ function App() {
   };
 
   const handleCopyImage = async (): Promise<boolean> => {
-    if (!svgElementRef.current) {
-      toast.error("Oops! No diagram to copy.", {
-        description:
-          "No diagram to copy. Please ensure the diagram is rendered correctly.",
-      });
+    if (!diagram.trim()) {
+      toast.error("Oops! No diagram to copy.");
       return false;
     }
 
     try {
-      const blob = await svgToImage(svgElementRef.current);
+      const lightSvg = await renderLightMermaid(diagram);
+      const blob = await svgToImage(lightSvg);
 
       if (navigator.clipboard && navigator.clipboard.write) {
         await navigator.clipboard.write([
@@ -226,17 +282,15 @@ function App() {
   };
 
   const handleCopySvg = async (): Promise<boolean> => {
-    if (!svgElementRef.current) {
-      toast.error("Oops! No diagram to copy.", {
-        description:
-          "No diagram to copy. Please ensure the diagram is rendered correctly.",
-      });
+    if (!diagram.trim()) {
+      toast.error("Oops! No diagram to copy.");
       return false;
     }
 
     try {
+      const lightSvg = await renderLightMermaid(diagram);
       const serializer = new XMLSerializer();
-      const svgString = serializer.serializeToString(svgElementRef.current);
+      const svgString = serializer.serializeToString(lightSvg);
       await navigator.clipboard.writeText(svgString);
       return true;
     } catch (error) {
@@ -312,7 +366,7 @@ function App() {
 
           <ResizableHandle
             withHandle
-            className={isViewerFullscreen ? "hidden" : ""}
+            className={cn("dark:w-0.5 dark:bg-background", isViewerFullscreen ? "hidden" : "")}
           />
 
           <ResizablePanel defaultSize={60} minSize={20}>

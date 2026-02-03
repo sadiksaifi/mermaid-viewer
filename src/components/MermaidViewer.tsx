@@ -141,7 +141,7 @@ export function MermaidViewer({
       className="h-full w-full flex flex-col bg-muted/5 relative overflow-hidden group/viewer"
     >
       {/* Header */}
-      <div className="h-9 border-b border-border/40 flex items-center justify-between px-4 shrink-0 z-10 relative">
+      <div className="h-9 border-b border-border/40 flex items-center justify-between px-4 shrink-0 z-10 relative bg-secondary">
         <div className="flex items-center gap-2">
           <Eye className="size-3.5 text-muted-foreground/70" />
           <span className="text-xs font-medium text-muted-foreground/70">
@@ -173,7 +173,7 @@ export function MermaidViewer({
       </div>
 
       {/* Main Canvas */}
-      <div className="flex-1 relative overflow-hidden bg-background">
+      <div className="flex-1 relative overflow-hidden bg-tertiary">
         <div className="absolute inset-0 bg-grid-pattern-small pointer-events-none [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_100%)] opacity-50" />
 
         <TransformWrapper

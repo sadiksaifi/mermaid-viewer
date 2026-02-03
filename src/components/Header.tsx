@@ -5,7 +5,7 @@ import {
   FileText,
   Command,
   ChevronDown,
-  Code,
+  // Code,
 } from "lucide-react";
 import { ModeToggle } from "./mode-toggle";
 import { ButtonGroup } from "@/components/ui/button-group";
@@ -28,7 +28,7 @@ interface HeaderProps {
 export function Header({
   onDownloadImage,
   onCopyImage,
-  onCopySvg,
+  // onCopySvg,
   onCopyAscii,
 }: HeaderProps) {
   const handleCopy = async (action: () => Promise<boolean>, label: string) => {
@@ -67,10 +67,11 @@ export function Header({
               <Copy className="mr-2 size-4" />
               Copy Image
             </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleCopy(onCopySvg, "SVG")}>
-              <Code className="mr-2 size-4" />
-              Copy SVG
-            </DropdownMenuItem>
+						{/* TODO: fix this first to enable this feature */}
+            {/* <DropdownMenuItem onClick={() => handleCopy(onCopySvg, "SVG")}> */}
+            {/*   <Code className="mr-2 size-4" /> */}
+            {/*   Copy SVG */}
+            {/* </DropdownMenuItem> */}
             <DropdownMenuItem onClick={() => handleCopy(onCopyAscii, "ASCII")}>
               <FileText className="mr-2 size-4" />
               Copy ASCII
