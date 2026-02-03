@@ -1,4 +1,5 @@
 import { Code2 } from "lucide-react";
+import { useMemo, useRef } from "react";
 
 interface MermaidEditorProps {
   value: string;
@@ -6,6 +7,17 @@ interface MermaidEditorProps {
 }
 
 export function MermaidEditor({ value, onChange }: MermaidEditorProps) {
+  const lineNumbersRef = useRef<HTMLDivElement>(null);
+  
+  const lineCount = useMemo(() => value.split('\n').length, [value]);
+  const lines = useMemo(() => Array.from({ length: Math.max(lineCount, 1) }, (_, i) => i + 1), [lineCount]);
+
+  const handleScroll = (e: React.UIEvent<HTMLTextAreaElement>) => {
+    if (lineNumbersRef.current) {
+      lineNumbersRef.current.scrollTop = e.currentTarget.scrollTop;
+    }
+  };
+
   return (
     <div className="h-full flex flex-col bg-background relative overflow-hidden group">
       {/* Minimal Header */}
@@ -17,16 +29,29 @@ export function MermaidEditor({ value, onChange }: MermaidEditorProps) {
           </span>
         </div>
         <div className="text-[10px] text-muted-foreground/50 font-mono">
-          {value.split('\n').length} lines
+          {lineCount} lines
         </div>
       </div>
 
-      <div className="flex-1 relative bg-muted/5">
+      <div className="flex-1 relative bg-muted/5 group-hover:bg-muted/10 transition-colors">
+        {/* Line Numbers */}
+        <div
+          ref={lineNumbersRef}
+          className="absolute left-0 top-0 bottom-0 w-12 py-4 md:py-6 text-right pr-3 bg-transparent text-muted-foreground/30 font-mono text-[13px] leading-6 select-none overflow-hidden pointer-events-none"
+          aria-hidden="true"
+        >
+          {lines.map((line) => (
+            <div key={line}>{line}</div>
+          ))}
+        </div>
+
+        {/* Textarea */}
         <textarea
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          onScroll={handleScroll}
           placeholder="graph TD..."
-          className="absolute inset-0 w-full h-full resize-none border-0 outline-none p-4 md:p-6 font-mono text-[13px] leading-6 bg-transparent text-foreground placeholder:text-muted-foreground/30 focus:ring-0 selection:bg-zinc-200 dark:selection:bg-zinc-800 custom-scrollbar"
+          className="absolute inset-0 w-full h-full resize-none border-0 outline-none py-4 md:py-6 pl-14 pr-4 md:pr-6 font-mono text-[13px] leading-6 bg-transparent text-foreground placeholder:text-muted-foreground/30 focus:ring-0 selection:bg-zinc-200 dark:selection:bg-zinc-800 custom-scrollbar"
           spellCheck={false}
           autoCapitalize="off"
           autoComplete="off"
