@@ -1,73 +1,99 @@
-# React + TypeScript + Vite
+# Mermaid Viewer
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A modern, high-performance **Mermaid.js** editor and viewer built with **React 19**, **Vite**, and **Tailwind CSS v4**.
 
-Currently, two official plugins are available:
+<img width="1624" height="1059" alt="Screenshot 2026-02-03 at 07 41 56" src="https://github.com/user-attachments/assets/cbb12d7d-8368-4796-ad6e-f9540179a00c" />
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+## ✨ Features
 
-## React Compiler
+- **Live Preview:** Instant rendering of Mermaid diagrams as you type.
+- **Smart Editor:** Powered by **Monaco Editor** (VS Code engine).
+  - **Syntax Highlighting:** Real-time coloring for Mermaid keywords.
+  - **Live Linting:** Inline error detection with red squiggles and hover details.
+  - **IntelliSense:** Autocomplete for keywords and complex snippets.
+  - **Command Palette:** Access commands via `Cmd+Shift+P`.
+  - **Code Formatting:** Automatic indentation cleanup.
+- **Interactive Viewer:**
+  - **Pan & Zoom:** Smooth controls to navigate large diagrams.
+  - **Dark Mode:** Fully responsive theme switching (Light/Dark/System).
+- **Export Tools:**
+  - Download as **PNG** (High Resolution).
+  - Copy to Clipboard (Image or Code).
+  - Copy as **ASCII** art (for easy sharing in text).
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## 🚀 Tech Stack
 
-## Expanding the ESLint configuration
+- **Runtime:** [Bun](https://bun.sh) (Strictly required)
+- **Framework:** React 19
+- **Build Tool:** Vite
+- **Styling:** Tailwind CSS v4
+- **Editor:** `@monaco-editor/react`
+- **Diagrams:** `mermaid`, `beautiful-mermaid`
+- **UI Components:** `shadcn/ui`, `lucide-react`
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+## 🛠️ Getting Started
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+### Prerequisites
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- **Bun** (v1.0.0 or later)
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+### Installation
+
+1.  Clone the repository:
+    ```bash
+    git clone https://github.com/your-username/mermaid-viewer.git
+    cd mermaid-viewer
+    ```
+
+2.  Install dependencies:
+    ```bash
+    bun install
+    ```
+
+### Development
+
+Start the local development server:
+
+```bash
+bun run dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Open [http://localhost:5173](http://localhost:5173) in your browser.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+### Production Build
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+Create a production-ready build:
+
+```bash
+bun run build
 ```
+
+To preview the production build:
+
+```bash
+bun run preview
+```
+
+## ⌨️ Keybindings
+
+- **Cmd/Ctrl + Shift + P**: Open Command Palette
+- **Alt + Shift + F**: Format Document
+- **Cmd/Ctrl + S**: Save (Auto-saves to local state - *Implementation pending*)
+
+## 🧩 Supported Diagrams
+
+- Flowchart
+- Sequence Diagram
+- Class Diagram
+- State Diagram (v2)
+- Entity Relationship (ER) Diagram
+- Gantt Chart
+- Pie Chart
+- Mindmap
+- GitGraph
+- User Journey
+- C4 Architecture
+
+## 📄 License
+
+This project is licensed under the MIT License.
