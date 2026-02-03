@@ -1,9 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import mermaid from "mermaid";
-import { Maximize, Minimize } from "lucide-react";
+import { 
+  Maximize, 
+  Minimize, 
+  ZoomIn, 
+  ZoomOut, 
+  RotateCcw, 
+  Eye, 
+  Loader2, 
+  AlertCircle, 
+  CheckCircle2 
+} from "lucide-react";
 import { ZOOM_CONFIG } from "../config";
 import { useTheme } from "@/components/theme-provider";
+import { Button } from "@/components/ui/button";
 
 interface MermaidViewerProps {
   diagram: string;
@@ -42,6 +53,7 @@ export function MermaidViewer({
       startOnLoad: false,
       theme: newTheme,
       securityLevel: "loose",
+      fontFamily: 'Manrope, sans-serif',
     });
   }, [theme]);
 
@@ -143,102 +155,152 @@ export function MermaidViewer({
   }, [diagram, onRenderComplete, mermaidTheme]);
 
   return (
-    <div ref={containerRef} className="h-full w-full overflow-hidden bg-background">
-      <TransformWrapper
-        initialScale={ZOOM_CONFIG.initialScale}
-        minScale={ZOOM_CONFIG.minScale}
-        maxScale={ZOOM_CONFIG.maxScale}
-        onTransformed={(e) => setCurrentScale(e.state.scale)}
-        wheel={{
-          step: Math.max(currentScale * ZOOM_CONFIG.wheelStep, 0.1),
-          smoothStep: Math.max(currentScale * ZOOM_CONFIG.wheelSmoothStep, 0.001),
-        }}
-        zoomAnimation={{
-          animationTime: ZOOM_CONFIG.animationTime,
-          animationType: "easeOut",
-        }}
-        panning={{ disabled: false }}
-        doubleClick={{ disabled: false }}
-        centerOnInit={true}
-      >
-        {({ zoomIn, zoomOut, resetTransform }) => (
-          <>
-            {/* Zoom Controls */}
-            <div className="absolute top-20 right-4 z-10 flex flex-col gap-2">
-              <button
-                onClick={() => zoomIn(currentScale * ZOOM_CONFIG.buttonStep)}
-                className="px-3 py-2 bg-background border border-border rounded-md shadow-sm hover:bg-accent text-sm font-medium"
-                title="Zoom In"
-              >
-                +
-              </button>
-              <button
-                onClick={() => zoomOut(currentScale * ZOOM_CONFIG.buttonStep)}
-                className="px-3 py-2 bg-background border border-border rounded-md shadow-sm hover:bg-accent text-sm font-medium"
-                title="Zoom Out"
-              >
-                −
-              </button>
-              <button
-                onClick={() => resetTransform()}
-                className="px-3 py-2 bg-background border border-border rounded-md shadow-sm hover:bg-accent text-sm font-medium"
-                title="Reset"
-              >
-                ↻
-              </button>
-              {onToggleFullscreen && (
-                <button
-                  onClick={onToggleFullscreen}
-                  className="px-3 py-2 bg-background border border-border rounded-md shadow-sm hover:bg-accent text-sm font-medium flex items-center justify-center"
-                  title={isFullscreen ? "Exit Full Screen" : "Full Screen"}
-                >
-                  {isFullscreen ? (
-                    <Minimize className="h-4 w-4" />
-                  ) : (
-                    <Maximize className="h-4 w-4" />
-                  )}
-                </button>
-              )}
-            </div>
+    <div ref={containerRef} className="h-full w-full flex flex-col bg-muted/5 relative overflow-hidden group/viewer">
+      
+      {/* Viewer Header */}
+      <div className="h-10 border-b border-border flex items-center justify-between px-4 bg-muted/10 shrink-0 z-10 relative backdrop-blur-sm">
+        <div className="flex items-center gap-2">
+          <Eye className="size-3.5 text-muted-foreground" />
+          <span className="text-xs font-mono font-medium text-muted-foreground uppercase tracking-wider">
+            Preview
+          </span>
+        </div>
+        
+        {/* Status Indicators */}
+        <div className="flex items-center gap-2">
+           {isRendering ? (
+              <span className="text-[10px] text-amber-500 font-mono flex items-center gap-1.5 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
+                 <Loader2 className="size-3 animate-spin" /> PROCESSING
+              </span>
+           ) : error ? (
+              <span className="text-[10px] text-destructive font-mono flex items-center gap-1.5 bg-destructive/10 px-2 py-0.5 rounded-full border border-destructive/20">
+                 <AlertCircle className="size-3" /> ERROR
+              </span>
+           ) : (
+              <span className="text-[10px] text-emerald-500 font-mono flex items-center gap-1.5 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 transition-opacity duration-500">
+                 <CheckCircle2 className="size-3" /> READY
+              </span>
+           )}
+        </div>
+      </div>
 
-            <TransformComponent
-              wrapperClass="h-full w-full bg-background"
-              contentClass="flex items-center justify-center"
-            >
-              <div
-                ref={contentRef}
-                className="flex items-center justify-center relative"
-                style={{ width: "100%", height: "100%" }}
-              >
-                {/* Always render the mermaid container to keep ref attached */}
-                <div
-                  ref={mermaidRef}
-                  className="mermaid-container"
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                />
-                {/* Overlay states */}
-                {isRendering && (
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div className="text-muted-foreground">Rendering...</div>
-                  </div>
-                )}
-                {error && (
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div className="text-destructive p-4 border border-destructive rounded-md max-w-md bg-background">
-                      <div className="font-semibold mb-2">Render Error</div>
-                      <div className="text-sm">{error}</div>
-                    </div>
-                  </div>
+      {/* Main Canvas Area */}
+      <div className="flex-1 relative overflow-hidden">
+        {/* Background Grid with Mask - Separated to avoid masking UI */}
+        <div className="absolute inset-0 bg-grid-pattern-small [background-size:16px_16px] [mask-image:linear-gradient(to_bottom,white,transparent_100%)] pointer-events-none" />
+        
+        <TransformWrapper
+          initialScale={ZOOM_CONFIG.initialScale}
+          minScale={ZOOM_CONFIG.minScale}
+          maxScale={ZOOM_CONFIG.maxScale}
+          onTransformed={(e) => setCurrentScale(e.state.scale)}
+          wheel={{
+            step: Math.max(currentScale * ZOOM_CONFIG.wheelStep, 0.1),
+            smoothStep: Math.max(currentScale * ZOOM_CONFIG.wheelSmoothStep, 0.001),
+          }}
+          zoomAnimation={{
+            animationTime: ZOOM_CONFIG.animationTime,
+            animationType: "easeOut",
+          }}
+          panning={{ disabled: false }}
+          doubleClick={{ disabled: false }}
+          centerOnInit={true}
+        >
+          {({ zoomIn, zoomOut, resetTransform }) => (
+            <>
+              {/* Floating Controls */}
+              <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 p-1.5 bg-background/80 backdrop-blur-xl border border-border/50 rounded-full shadow-2xl shadow-black/20 ring-1 ring-white/10 dark:ring-black/20">
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => zoomOut(currentScale * ZOOM_CONFIG.buttonStep)}
+                  className="rounded-full hover:bg-muted"
+                  title="Zoom Out"
+                >
+                  <ZoomOut className="size-4" />
+                </Button>
+                
+                <div className="px-2 min-w-[3rem] text-center font-mono text-xs text-muted-foreground select-none">
+                  {Math.round(currentScale * 100)}%
+                </div>
+                
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => zoomIn(currentScale * ZOOM_CONFIG.buttonStep)}
+                  className="rounded-full hover:bg-muted"
+                  title="Zoom In"
+                >
+                  <ZoomIn className="size-4" />
+                </Button>
+
+                <div className="w-px h-4 bg-border mx-1" />
+
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  onClick={() => resetTransform()}
+                  className="rounded-full hover:bg-muted"
+                  title="Reset View"
+                >
+                  <RotateCcw className="size-4" />
+                </Button>
+
+                {onToggleFullscreen && (
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    onClick={onToggleFullscreen}
+                    className="rounded-full hover:bg-muted"
+                    title={isFullscreen ? "Exit Full Screen" : "Full Screen"}
+                  >
+                    {isFullscreen ? (
+                      <Minimize className="size-4" />
+                    ) : (
+                      <Maximize className="size-4" />
+                    )}
+                  </Button>
                 )}
               </div>
-            </TransformComponent>
-          </>
-        )}
-      </TransformWrapper>
+
+              <TransformComponent
+                wrapperClass="h-full w-full !bg-transparent"
+                contentClass="flex items-center justify-center"
+              >
+                <div
+                  ref={contentRef}
+                  className="flex items-center justify-center relative min-w-full min-h-full py-20 px-20"
+                >
+                  {/* Container for Mermaid SVG */}
+                  <div
+                    ref={mermaidRef}
+                    className="mermaid-container transition-opacity duration-300"
+                    style={{
+                      opacity: isRendering ? 0.5 : 1,
+                      filter: isRendering ? 'blur(2px)' : 'none',
+                    }}
+                  />
+                  
+                  {/* Error Overlay */}
+                  {error && (
+                    <div className="absolute inset-0 flex items-center justify-center z-50 bg-background/50 backdrop-blur-sm">
+                      <div className="max-w-md w-full mx-4 p-4 rounded-lg border border-destructive/50 bg-destructive/5 text-destructive shadow-lg backdrop-blur-md">
+                        <div className="flex items-center gap-2 font-semibold mb-2">
+                          <AlertCircle className="size-4" />
+                          <span>Rendering Error</span>
+                        </div>
+                        <div className="text-xs font-mono break-all opacity-90">
+                          {error}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </TransformComponent>
+            </>
+          )}
+        </TransformWrapper>
+      </div>
     </div>
   );
 }
