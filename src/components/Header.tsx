@@ -1,5 +1,12 @@
 import { Button } from "@/components/ui/button";
-import { Download, Copy, FileText, Command, ChevronDown, Code } from "lucide-react";
+import {
+  Download,
+  Copy,
+  FileText,
+  Command,
+  ChevronDown,
+  Code,
+} from "lucide-react";
 import { ModeToggle } from "./mode-toggle";
 import { ButtonGroup } from "@/components/ui/button-group";
 import {
@@ -44,13 +51,13 @@ export function Header({
 
       <div className="flex items-center gap-2">
         <DropdownMenu>
-          <ButtonGroup variant="outline">
+          <ButtonGroup variant="outline" size="sm">
             <Button onClick={onDownloadImage} className="gap-2">
               <Download className="size-4" />
               Export
             </Button>
             <DropdownMenuTrigger asChild>
-              <Button size="icon" className="px-2">
+              <Button size="sm" className="px-2">
                 <ChevronDown className="size-4" />
               </Button>
             </DropdownMenuTrigger>
@@ -70,7 +77,7 @@ export function Header({
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-        
+
         <div className="ml-2">
           <ModeToggle />
         </div>
