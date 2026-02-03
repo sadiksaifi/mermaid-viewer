@@ -3,6 +3,11 @@ import { Header } from "@/components/Header";
 import { MermaidEditor } from "@/components/MermaidEditor";
 import { MermaidViewer } from "@/components/MermaidViewer";
 import { ThemeProvider } from "@/components/theme-provider";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable";
 import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { EXPORT_CONFIG } from "./config";
@@ -205,21 +210,27 @@ function App() {
           onCopyText={handleCopyText}
           onCopyAscii={handleCopyAscii}
         />
-        <div
-          className={`flex-1 grid overflow-hidden transition-all duration-300 ease-in-out ${
-            isViewerFullscreen ? "grid-cols-1" : "grid-cols-[40%_60%]"
-          }`}
+        <ResizablePanelGroup
+          direction="horizontal"
+          className="flex-1 overflow-hidden"
         >
           {!isViewerFullscreen && (
-            <MermaidEditor value={diagram} onChange={setDiagram} />
+            <>
+              <ResizablePanel defaultSize={40} minSize={20}>
+                <MermaidEditor value={diagram} onChange={setDiagram} />
+              </ResizablePanel>
+              <ResizableHandle withHandle />
+            </>
           )}
-          <MermaidViewer
-            diagram={diagram}
-            onRenderComplete={handleRenderComplete}
-            isFullscreen={isViewerFullscreen}
-            onToggleFullscreen={toggleFullscreen}
-          />
-        </div>
+          <ResizablePanel defaultSize={60} minSize={20}>
+            <MermaidViewer
+              diagram={diagram}
+              onRenderComplete={handleRenderComplete}
+              isFullscreen={isViewerFullscreen}
+              onToggleFullscreen={toggleFullscreen}
+            />
+          </ResizablePanel>
+        </ResizablePanelGroup>
       </div>
       <Toaster richColors position="top-right" />
     </ThemeProvider>
