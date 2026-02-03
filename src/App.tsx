@@ -12,6 +12,7 @@ import { Toaster } from "@/components/ui/sonner";
 import { toast } from "sonner";
 import { EXPORT_CONFIG } from "./config";
 import { renderMermaidAscii } from "beautiful-mermaid";
+import type { ImperativePanelHandle } from "react-resizable-panels";
 
 const DEFAULT_DIAGRAM = `graph TD
     A[Start] --> B{Decision}
@@ -24,6 +25,7 @@ function App() {
   const [diagram, setDiagram] = useState(DEFAULT_DIAGRAM);
   const [isViewerFullscreen, setIsViewerFullscreen] = useState(false);
   const svgElementRef = useRef<SVGSVGElement | null>(null);
+  const editorPanelRef = useRef<ImperativePanelHandle>(null);
 
   const handleRenderComplete = useCallback(
     (svgElement: SVGSVGElement | null) => {
@@ -33,8 +35,15 @@ function App() {
   );
 
   const toggleFullscreen = useCallback(() => {
-    setIsViewerFullscreen((prev) => !prev);
-  }, []);
+    const panel = editorPanelRef.current;
+    if (panel) {
+      if (isViewerFullscreen) {
+        panel.expand();
+      } else {
+        panel.collapse();
+      }
+    }
+  }, [isViewerFullscreen]);
 
   const svgToImage = async (
     svgElement: SVGSVGElement,
@@ -214,14 +223,20 @@ function App() {
           direction="horizontal"
           className="flex-1 overflow-hidden"
         >
-          {!isViewerFullscreen && (
-            <>
-              <ResizablePanel defaultSize={40} minSize={20}>
-                <MermaidEditor value={diagram} onChange={setDiagram} />
-              </ResizablePanel>
-              <ResizableHandle withHandle />
-            </>
-          )}
+          <ResizablePanel 
+            ref={editorPanelRef}
+            defaultSize={40} 
+            minSize={20}
+            collapsible={true}
+            collapsedSize={0}
+            onCollapse={() => setIsViewerFullscreen(true)}
+            onExpand={() => setIsViewerFullscreen(false)}
+          >
+            <MermaidEditor value={diagram} onChange={setDiagram} />
+          </ResizablePanel>
+          
+          <ResizableHandle withHandle className={isViewerFullscreen ? "hidden" : ""} />
+          
           <ResizablePanel defaultSize={60} minSize={20}>
             <MermaidViewer
               diagram={diagram}
