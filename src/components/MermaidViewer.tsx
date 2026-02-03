@@ -3,6 +3,7 @@ import { TransformWrapper, TransformComponent } from "react-zoom-pan-pinch";
 import mermaid from "mermaid";
 import { Maximize, Minimize } from "lucide-react";
 import { ZOOM_CONFIG } from "../config";
+import { useTheme } from "@/components/theme-provider";
 
 interface MermaidViewerProps {
   diagram: string;
@@ -24,14 +25,25 @@ export function MermaidViewer({
   const [error, setError] = useState<string | null>(null);
   const [currentScale, setCurrentScale] = useState<number>(ZOOM_CONFIG.initialScale);
 
-  // Initialize Mermaid
+  const { theme } = useTheme();
+  const [mermaidTheme, setMermaidTheme] = useState<"default" | "dark">("default");
+
+  // Initialize Mermaid and handle theme changes
   useEffect(() => {
+    const isDark =
+      theme === "dark" ||
+      (theme === "system" &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches);
+    const newTheme = isDark ? "dark" : "default";
+
+    setMermaidTheme(newTheme);
+
     mermaid.initialize({
       startOnLoad: false,
-      theme: "default",
+      theme: newTheme,
       securityLevel: "loose",
     });
-  }, []);
+  }, [theme]);
 
   // Ensure content fills the viewport for panning
   useEffect(() => {
@@ -128,7 +140,7 @@ export function MermaidViewer({
       isMounted = false;
       clearTimeout(timeoutId);
     };
-  }, [diagram, onRenderComplete]);
+  }, [diagram, onRenderComplete, mermaidTheme]);
 
   return (
     <div ref={containerRef} className="h-full w-full overflow-hidden bg-background">
