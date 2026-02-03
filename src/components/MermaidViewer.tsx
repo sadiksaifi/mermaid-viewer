@@ -9,8 +9,7 @@ import {
   RotateCcw, 
   Eye, 
   Loader2, 
-  AlertCircle, 
-  CheckCircle2 
+  AlertCircle 
 } from "lucide-react";
 import { ZOOM_CONFIG } from "../config";
 import { useTheme } from "@/components/theme-provider";
@@ -39,7 +38,6 @@ export function MermaidViewer({
   const { theme } = useTheme();
   const [mermaidTheme, setMermaidTheme] = useState<"default" | "dark">("default");
 
-  // Initialize Mermaid and handle theme changes
   useEffect(() => {
     const isDark =
       theme === "dark" ||
@@ -53,11 +51,10 @@ export function MermaidViewer({
       startOnLoad: false,
       theme: newTheme,
       securityLevel: "loose",
-      fontFamily: 'Manrope, sans-serif',
+      fontFamily: 'Inter, -apple-system, sans-serif',
     });
   }, [theme]);
 
-  // Ensure content fills the viewport for panning
   useEffect(() => {
     const updateContentSize = () => {
       if (containerRef.current && contentRef.current) {
@@ -82,24 +79,18 @@ export function MermaidViewer({
     };
   }, []);
 
-  // Render Mermaid diagram
   useEffect(() => {
     let isMounted = true;
 
     const renderDiagram = async () => {
-      // Small delay to ensure DOM is ready
       await new Promise((resolve) => setTimeout(resolve, 50));
 
-      if (!isMounted || !mermaidRef.current) {
-        return;
-      }
+      if (!isMounted || !mermaidRef.current) return;
 
       const currentRef = mermaidRef.current;
 
       if (!diagram.trim()) {
-        if (currentRef) {
-          currentRef.innerHTML = "";
-        }
+        if (currentRef) currentRef.innerHTML = "";
         setError(null);
         setIsRendering(false);
         onRenderComplete?.(null);
@@ -110,33 +101,21 @@ export function MermaidViewer({
       setError(null);
 
       try {
-        // Clear previous content
-        if (currentRef) {
-          currentRef.innerHTML = "";
-        }
-
-        // Generate unique ID for this diagram
+        if (currentRef) currentRef.innerHTML = "";
         const id = `mermaid-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-
-        // Render the diagram
         const { svg } = await mermaid.render(id, diagram);
 
-        // Check if component is still mounted and ref is still valid
         if (!isMounted || !mermaidRef.current) {
           setIsRendering(false);
           return;
         }
 
         mermaidRef.current.innerHTML = svg;
-
-        // Find the rendered SVG element
         const svgElement = mermaidRef.current?.querySelector("svg") || null;
         onRenderComplete?.(svgElement);
-
         setIsRendering(false);
       } catch (err) {
         if (!isMounted) return;
-
         const errorMessage =
           err instanceof Error ? err.message : "Failed to render diagram";
         setError(errorMessage);
@@ -145,9 +124,7 @@ export function MermaidViewer({
       }
     };
 
-    // Debounce rendering to avoid excessive re-renders
     const timeoutId = setTimeout(renderDiagram, 300);
-
     return () => {
       isMounted = false;
       clearTimeout(timeoutId);
@@ -157,37 +134,39 @@ export function MermaidViewer({
   return (
     <div ref={containerRef} className="h-full w-full flex flex-col bg-muted/5 relative overflow-hidden group/viewer">
       
-      {/* Viewer Header */}
-      <div className="h-10 border-b border-border flex items-center justify-between px-4 bg-muted/10 shrink-0 z-10 relative backdrop-blur-sm">
+      {/* Header */}
+      <div className="h-9 border-b border-border/40 flex items-center justify-between px-4 shrink-0 z-10 relative">
         <div className="flex items-center gap-2">
-          <Eye className="size-3.5 text-muted-foreground" />
-          <span className="text-xs font-mono font-medium text-muted-foreground uppercase tracking-wider">
+          <Eye className="size-3.5 text-muted-foreground/70" />
+          <span className="text-xs font-medium text-muted-foreground/70">
             Preview
           </span>
         </div>
         
-        {/* Status Indicators */}
+        {/* Minimal Status */}
         <div className="flex items-center gap-2">
            {isRendering ? (
-              <span className="text-[10px] text-amber-500 font-mono flex items-center gap-1.5 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
-                 <Loader2 className="size-3 animate-spin" /> PROCESSING
-              </span>
+             <div className="flex items-center gap-1.5">
+               <Loader2 className="size-3 animate-spin text-muted-foreground" />
+               <span className="text-[10px] text-muted-foreground font-medium">Render...</span>
+             </div>
            ) : error ? (
-              <span className="text-[10px] text-destructive font-mono flex items-center gap-1.5 bg-destructive/10 px-2 py-0.5 rounded-full border border-destructive/20">
-                 <AlertCircle className="size-3" /> ERROR
-              </span>
+             <div className="flex items-center gap-1.5 text-red-500">
+               <div className="size-1.5 rounded-full bg-red-500" />
+               <span className="text-[10px] font-medium">Error</span>
+             </div>
            ) : (
-              <span className="text-[10px] text-emerald-500 font-mono flex items-center gap-1.5 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20 transition-opacity duration-500">
-                 <CheckCircle2 className="size-3" /> READY
-              </span>
+             <div className="flex items-center gap-1.5 text-emerald-500/80">
+               <div className="size-1.5 rounded-full bg-emerald-500/80 shadow-[0_0_4px_currentColor]" />
+               <span className="text-[10px] font-medium">Live</span>
+             </div>
            )}
         </div>
       </div>
 
-      {/* Main Canvas Area */}
-      <div className="flex-1 relative overflow-hidden">
-        {/* Background Grid with Mask - Separated to avoid masking UI */}
-        <div className="absolute inset-0 bg-grid-pattern-small [background-size:16px_16px] [mask-image:linear-gradient(to_bottom,white,transparent_100%)] pointer-events-none" />
+      {/* Main Canvas */}
+      <div className="flex-1 relative overflow-hidden bg-background">
+        <div className="absolute inset-0 bg-grid-pattern-small pointer-events-none [mask-image:radial-gradient(ellipse_at_center,black_40%,transparent_100%)] opacity-50" />
         
         <TransformWrapper
           initialScale={ZOOM_CONFIG.initialScale}
@@ -202,25 +181,22 @@ export function MermaidViewer({
             animationTime: ZOOM_CONFIG.animationTime,
             animationType: "easeOut",
           }}
-          panning={{ disabled: false }}
-          doubleClick={{ disabled: false }}
           centerOnInit={true}
         >
           {({ zoomIn, zoomOut, resetTransform }) => (
             <>
-              {/* Floating Controls */}
-              <div className="absolute bottom-10 left-1/2 -translate-x-1/2 z-50 flex items-center gap-1 p-1.5 bg-background/80 backdrop-blur-xl border border-border/50 rounded-full shadow-2xl shadow-black/20 ring-1 ring-white/10 dark:ring-black/20">
+              {/* Apple-style Floating Controls */}
+              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center p-1 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border border-black/5 dark:border-white/10 rounded-full shadow-lg shadow-black/5">
                 <Button
                   variant="ghost"
                   size="icon-sm"
                   onClick={() => zoomOut(currentScale * ZOOM_CONFIG.buttonStep)}
-                  className="rounded-full hover:bg-muted"
-                  title="Zoom Out"
+                  className="rounded-full size-8 hover:bg-black/5 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground transition-colors"
                 >
                   <ZoomOut className="size-4" />
                 </Button>
                 
-                <div className="px-2 min-w-[3rem] text-center font-mono text-xs text-muted-foreground select-none">
+                <div className="w-[3rem] text-center font-medium text-xs text-muted-foreground select-none tabular-nums">
                   {Math.round(currentScale * 100)}%
                 </div>
                 
@@ -228,22 +204,20 @@ export function MermaidViewer({
                   variant="ghost"
                   size="icon-sm"
                   onClick={() => zoomIn(currentScale * ZOOM_CONFIG.buttonStep)}
-                  className="rounded-full hover:bg-muted"
-                  title="Zoom In"
+                  className="rounded-full size-8 hover:bg-black/5 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground transition-colors"
                 >
                   <ZoomIn className="size-4" />
                 </Button>
 
-                <div className="w-px h-4 bg-border mx-1" />
+                <div className="w-px h-3 bg-border mx-1" />
 
                 <Button
                   variant="ghost"
                   size="icon-sm"
                   onClick={() => resetTransform()}
-                  className="rounded-full hover:bg-muted"
-                  title="Reset View"
+                  className="rounded-full size-8 hover:bg-black/5 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground transition-colors"
                 >
-                  <RotateCcw className="size-4" />
+                  <RotateCcw className="size-3.5" />
                 </Button>
 
                 {onToggleFullscreen && (
@@ -251,13 +225,12 @@ export function MermaidViewer({
                     variant="ghost"
                     size="icon-sm"
                     onClick={onToggleFullscreen}
-                    className="rounded-full hover:bg-muted"
-                    title={isFullscreen ? "Exit Full Screen" : "Full Screen"}
+                    className="rounded-full size-8 hover:bg-black/5 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground transition-colors"
                   >
                     {isFullscreen ? (
-                      <Minimize className="size-4" />
+                      <Minimize className="size-3.5" />
                     ) : (
-                      <Maximize className="size-4" />
+                      <Maximize className="size-3.5" />
                     )}
                   </Button>
                 )}
@@ -271,26 +244,29 @@ export function MermaidViewer({
                   ref={contentRef}
                   className="flex items-center justify-center relative min-w-full min-h-full py-20 px-20"
                 >
-                  {/* Container for Mermaid SVG */}
                   <div
                     ref={mermaidRef}
-                    className="mermaid-container transition-opacity duration-300"
+                    className="mermaid-container transition-all duration-500 ease-out"
                     style={{
-                      opacity: isRendering ? 0.5 : 1,
-                      filter: isRendering ? 'blur(2px)' : 'none',
+                      opacity: isRendering ? 0.4 : 1,
+                      filter: isRendering ? 'blur(8px)' : 'none',
+                      transform: isRendering ? 'scale(0.98)' : 'scale(1)',
                     }}
                   />
                   
-                  {/* Error Overlay */}
                   {error && (
-                    <div className="absolute inset-0 flex items-center justify-center z-50 bg-background/50 backdrop-blur-sm">
-                      <div className="max-w-md w-full mx-4 p-4 rounded-lg border border-destructive/50 bg-destructive/5 text-destructive shadow-lg backdrop-blur-md">
-                        <div className="flex items-center gap-2 font-semibold mb-2">
-                          <AlertCircle className="size-4" />
-                          <span>Rendering Error</span>
-                        </div>
-                        <div className="text-xs font-mono break-all opacity-90">
-                          {error}
+                    <div className="absolute inset-0 flex items-center justify-center z-50 pointer-events-none">
+                      <div className="max-w-sm w-full mx-4 p-4 rounded-2xl bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl border border-red-200/50 dark:border-red-900/30 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+                        <div className="flex items-start gap-3">
+                          <div className="p-2 rounded-full bg-red-100 dark:bg-red-900/20 text-red-600 dark:text-red-400">
+                             <AlertCircle className="size-5" />
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="text-sm font-semibold text-foreground mb-1">Syntax Error</h3>
+                            <p className="text-xs text-muted-foreground font-mono leading-relaxed break-all">
+                              {error}
+                            </p>
+                          </div>
                         </div>
                       </div>
                     </div>

@@ -1,13 +1,13 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Manrope:wght@400;500;600;700&family=Syne:wght@400;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Inter:wght@400;500;600&display=swap');
 
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --font-sans: "Manrope", sans-serif;
-  --font-mono: "JetBrains Mono", monospace;
-  --font-display: "Syne", sans-serif;
+  --font-sans: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  --font-display: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
 
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
@@ -46,85 +46,90 @@
 }
 
 :root {
-  --radius: 0.25rem; /* Sharper corners for technical look */
+  --radius: 0.6rem;
+  --scrollbar-thumb: #e4e4e7; /* Zinc 200 */
+  --scrollbar-thumb-hover: #d4d4d8; /* Zinc 300 */
 
-  /* Light Mode - Technical Paper */
-  --background: #f8fafc; /* Slate 50 */
-  --foreground: #0f172a; /* Slate 900 */
+  /* Light Mode - Clean, Paper-like, OpenAI/Apple */
+  --background: #ffffff;
+  --foreground: #18181b; /* Zinc 900 */
   
   --card: #ffffff;
-  --card-foreground: #0f172a;
+  --card-foreground: #18181b;
   
   --popover: #ffffff;
-  --popover-foreground: #0f172a;
+  --popover-foreground: #18181b;
   
-  --primary: #0891b2; /* Cyan 600 */
-  --primary-foreground: #ffffff;
+  --primary: #18181b; /* Zinc 900 */
+  --primary-foreground: #fafafa; /* Zinc 50 */
   
-  --secondary: #e2e8f0; /* Slate 200 */
-  --secondary-foreground: #0f172a;
+  --secondary: #f4f4f5; /* Zinc 100 */
+  --secondary-foreground: #18181b;
   
-  --muted: #f1f5f9; /* Slate 100 */
-  --muted-foreground: #64748b; /* Slate 500 */
+  --muted: #fafafa; /* Zinc 50 */
+  --muted-foreground: #71717a; /* Zinc 500 */
   
-  --accent: #f0f9ff; /* Sky 50 */
-  --accent-foreground: #0891b2;
+  --accent: #f4f4f5; /* Zinc 100 */
+  --accent-foreground: #18181b;
   
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
   
-  --border: #cbd5e1; /* Slate 300 */
-  --input: #cbd5e1;
-  --ring: #0891b2;
+  --border: #e4e4e7; /* Zinc 200 */
+  --input: #e4e4e7;
+  --ring: #18181b;
 
-  --sidebar-background: #f8fafc;
-  --sidebar-foreground: #0f172a;
-  --sidebar-primary: #0891b2;
+  --sidebar-background: #ffffff;
+  --sidebar-foreground: #18181b;
+  --sidebar-primary: #18181b;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: #f1f5f9;
-  --sidebar-accent-foreground: #0f172a;
-  --sidebar-border: #cbd5e1;
-  --sidebar-ring: #0891b2;
+  --sidebar-accent: #f4f4f5;
+  --sidebar-accent-foreground: #18181b;
+  --sidebar-border: #e4e4e7;
+  --sidebar-ring: #18181b;
 }
 
 .dark {
-  /* Dark Mode - Blueprint / Terminal */
-  --background: #0B1120; /* Deepest Navy/Black */
-  --foreground: #e2e8f0; /* Slate 200 */
+  --scrollbar-thumb: #27272a; /* Zinc 800 */
+  --scrollbar-thumb-hover: #3f3f46; /* Zinc 700 */
+
+  /* Dark Mode - Deep, Rich, OLED-friendly */
+  --background: #09090b; /* Zinc 950 */
+  --foreground: #fafafa; /* Zinc 50 */
   
-  --card: #151e32; /* Slightly lighter navy */
-  --card-foreground: #e2e8f0;
+  --card: #18181b; /* Zinc 900 */
+  --card-foreground: #fafafa;
   
-  --popover: #151e32;
-  --popover-foreground: #e2e8f0;
+  --popover: #18181b;
+  --popover-foreground: #fafafa;
   
-  --primary: #22d3ee; /* Cyan 400 - Neon Glow */
-  --primary-foreground: #0B1120;
+  --primary: #fafafa; /* Zinc 50 */
+  --primary-foreground: #18181b; /* Zinc 900 */
   
-  --secondary: #1e293b; /* Slate 800 */
-  --secondary-foreground: #e2e8f0;
+  --secondary: #27272a; /* Zinc 800 */
+  --secondary-foreground: #fafafa;
   
-  --muted: #1e293b;
-  --muted-foreground: #94a3b8; /* Slate 400 */
+  --muted: #18181b; /* Zinc 900 */
+  --muted-foreground: #a1a1aa; /* Zinc 400 */
   
-  --accent: #164e63; /* Cyan 900 */
-  --accent-foreground: #22d3ee;
+  --accent: #27272a; /* Zinc 800 */
+  --accent-foreground: #fafafa;
   
   --destructive: #7f1d1d;
   --destructive-foreground: #fecaca;
   
-  --border: #334155; /* Slate 700 */
-  --input: #334155;
-  --ring: #22d3ee;
+  --border: #27272a; /* Zinc 800 */
+  --input: #27272a;
+  --ring: #d4d4d8; /* Zinc 300 */
 
-  --sidebar-background: #0B1120;
-  --sidebar-foreground: #e2e8f0;
-  --sidebar-primary: #22d3ee;
-  --sidebar-primary-foreground: #0B1120;
-  --sidebar-accent: #1e293b;
-  --sidebar-accent-foreground: #e2e8f0;
-  --sidebar-border: #334155;
-  --sidebar-ring: #22d3ee;
+  --sidebar-background: #09090b;
+  --sidebar-foreground: #fafafa;
+  --sidebar-primary: #fafafa;
+  --sidebar-primary-foreground: #18181b;
+  --sidebar-accent: #27272a;
+  --sidebar-accent-foreground: #fafafa;
+  --sidebar-border: #27272a;
+  --sidebar-ring: #d4d4d8;
 }
 
 @layer base {
@@ -132,10 +137,10 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground font-sans antialiased selection:bg-primary/20 selection:text-primary;
+    @apply bg-background text-foreground font-sans antialiased selection:bg-zinc-200 selection:text-zinc-900 dark:selection:bg-zinc-700 dark:selection:text-zinc-50;
   }
   h1, h2, h3, h4, h5, h6 {
-    @apply font-display tracking-tight;
+    @apply font-sans tracking-tight;
   }
 }
 
@@ -143,10 +148,36 @@
 @layer utilities {
   .bg-grid-pattern {
     background-image: radial-gradient(var(--border) 1px, transparent 1px);
-    background-size: 20px 20px;
+    background-size: 24px 24px;
+    opacity: 0.4;
   }
   .bg-grid-pattern-small {
     background-image: radial-gradient(var(--border) 1px, transparent 1px);
-    background-size: 10px 10px;
+    background-size: 16px 16px;
+    opacity: 0.3;
+  }
+
+  .custom-scrollbar {
+    scrollbar-width: thin;
+    scrollbar-color: var(--scrollbar-thumb) transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: var(--scrollbar-thumb);
+    border-radius: 10px;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: var(--scrollbar-thumb-hover);
   }
 }
+
