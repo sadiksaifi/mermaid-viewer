@@ -2,7 +2,7 @@ import { useState, useRef, useCallback } from "react";
 import { Header } from "@/components/Header";
 import { MermaidEditor } from "@/components/MermaidEditor";
 import { MermaidViewer } from "@/components/MermaidViewer";
-import { ThemeProvider } from "@/components/theme-provider";
+import { ThemeProvider, useTheme } from "@/components/theme-provider";
 import {
   ResizableHandle,
   ResizablePanel,
@@ -26,12 +26,13 @@ function App() {
   const [isViewerFullscreen, setIsViewerFullscreen] = useState(false);
   const svgElementRef = useRef<SVGSVGElement | null>(null);
   const editorPanelRef = useRef<ImperativePanelHandle>(null);
+  const { theme } = useTheme();
 
   const handleRenderComplete = useCallback(
     (svgElement: SVGSVGElement | null) => {
       svgElementRef.current = svgElement;
     },
-    []
+    [],
   );
 
   const toggleFullscreen = useCallback(() => {
@@ -47,7 +48,7 @@ function App() {
 
   const svgToImage = async (
     svgElement: SVGSVGElement,
-    scale: number = EXPORT_CONFIG.scale
+    scale: number = EXPORT_CONFIG.scale,
   ): Promise<Blob> => {
     // Clone the SVG to avoid modifying the original
     const clonedSvg = svgElement.cloneNode(true) as SVGSVGElement;
@@ -67,9 +68,12 @@ function App() {
       sourceHeight = bbox.height;
       sourceX = bbox.x;
       sourceY = bbox.y;
-      
+
       // Update viewBox to match the bbox if we had to fallback
-      clonedSvg.setAttribute("viewBox", `${sourceX} ${sourceY} ${sourceWidth} ${sourceHeight}`);
+      clonedSvg.setAttribute(
+        "viewBox",
+        `${sourceX} ${sourceY} ${sourceWidth} ${sourceHeight}`,
+      );
     }
 
     // Last fallback to attributes
@@ -81,7 +85,7 @@ function App() {
     // Remove any style constraints (like max-width) that Mermaid might add
     clonedSvg.style.maxWidth = "none";
     clonedSvg.style.maxHeight = "none";
-    
+
     // Ensure the SVG scales to fill our new canvas
     clonedSvg.setAttribute("width", "100%");
     clonedSvg.setAttribute("height", "100%");
@@ -141,7 +145,7 @@ function App() {
         // Fill white background for better export
         ctx.fillStyle = "white";
         ctx.fillRect(0, 0, canvas.width, canvas.height);
-        
+
         // Draw the image filling the canvas
         ctx.drawImage(img, 0, 0, targetWidth, targetHeight);
 
@@ -221,6 +225,29 @@ function App() {
     }
   };
 
+  const handleCopySvg = async (): Promise<boolean> => {
+    if (!svgElementRef.current) {
+      toast.error("Oops! No diagram to copy.", {
+        description:
+          "No diagram to copy. Please ensure the diagram is rendered correctly.",
+      });
+      return false;
+    }
+
+    try {
+      const serializer = new XMLSerializer();
+      const svgString = serializer.serializeToString(svgElementRef.current);
+      await navigator.clipboard.writeText(svgString);
+      return true;
+    } catch (error) {
+      console.error("Failed to copy SVG:", error);
+      toast.error("Oops! Failed to copy SVG.", {
+        description: "Failed to copy SVG code to clipboard.",
+      });
+      return false;
+    }
+  };
+
   const handleCopyText = () => {
     if (!diagram.trim()) {
       toast.error("No diagram to copy.");
@@ -263,6 +290,7 @@ function App() {
         <Header
           onDownloadImage={handleDownloadImage}
           onCopyImage={handleCopyImage}
+          onCopySvg={handleCopySvg}
           onCopyText={handleCopyText}
           onCopyAscii={handleCopyAscii}
         />
@@ -270,9 +298,9 @@ function App() {
           direction="horizontal"
           className="flex-1 overflow-hidden"
         >
-          <ResizablePanel 
+          <ResizablePanel
             ref={editorPanelRef}
-            defaultSize={40} 
+            defaultSize={40}
             minSize={20}
             collapsible={true}
             collapsedSize={0}
@@ -281,9 +309,12 @@ function App() {
           >
             <MermaidEditor value={diagram} onChange={setDiagram} />
           </ResizablePanel>
-          
-          <ResizableHandle withHandle className={isViewerFullscreen ? "hidden" : ""} />
-          
+
+          <ResizableHandle
+            withHandle
+            className={isViewerFullscreen ? "hidden" : ""}
+          />
+
           <ResizablePanel defaultSize={60} minSize={20}>
             <MermaidViewer
               diagram={diagram}
@@ -294,7 +325,7 @@ function App() {
           </ResizablePanel>
         </ResizablePanelGroup>
       </div>
-      <Toaster richColors position="top-right" />
+      <Toaster richColors position="bottom-right" theme={theme} />
     </ThemeProvider>
   );
 }
