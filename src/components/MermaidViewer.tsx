@@ -141,36 +141,38 @@ export function MermaidViewer({
       className="h-full w-full flex flex-col bg-muted/5 relative overflow-hidden group/viewer"
     >
       {/* Header */}
-      <div className="h-9 border-b border-border/40 flex items-center justify-between px-4 shrink-0 z-10 relative bg-secondary">
-        <div className="flex items-center gap-2">
-          <Eye className="size-3.5 text-muted-foreground/70" />
-          <span className="text-xs font-medium text-muted-foreground/70">
-            Preview
-          </span>
-        </div>
+      {!isFullscreen && (
+        <div className="h-9 border-b border-border/40 flex items-center justify-between px-4 shrink-0 z-10 relative bg-secondary">
+          <div className="flex items-center gap-2">
+            <Eye className="size-3.5 text-muted-foreground/70" />
+            <span className="text-xs font-medium text-muted-foreground/70">
+              Preview
+            </span>
+          </div>
 
-        {/* Minimal Status */}
-        <div className="flex items-center gap-2">
-          {isRendering ? (
-            <div className="flex items-center gap-1.5">
-              <Loader2 className="size-3 animate-spin text-muted-foreground" />
-              <span className="text-[10px] text-muted-foreground font-medium">
-                Render...
-              </span>
-            </div>
-          ) : error ? (
-            <div className="flex items-center gap-1.5 text-red-500">
-              <div className="size-1.5 rounded-full bg-red-500" />
-              <span className="text-[10px] font-medium">Error</span>
-            </div>
-          ) : (
-            <div className="flex items-center gap-1.5 text-emerald-500/80">
-              <div className="size-1.5 rounded-full bg-emerald-500/80 shadow-[0_0_4px_currentColor]" />
-              <span className="text-[10px] font-medium">Live</span>
-            </div>
-          )}
+          {/* Minimal Status */}
+          <div className="flex items-center gap-2">
+            {isRendering ? (
+              <div className="flex items-center gap-1.5">
+                <Loader2 className="size-3 animate-spin text-muted-foreground" />
+                <span className="text-[10px] text-muted-foreground font-medium">
+                  Render...
+                </span>
+              </div>
+            ) : error ? (
+              <div className="flex items-center gap-1.5 text-red-500">
+                <div className="size-1.5 rounded-full bg-red-500" />
+                <span className="text-[10px] font-medium">Error</span>
+              </div>
+            ) : (
+              <div className="flex items-center gap-1.5 text-emerald-500/80">
+                <div className="size-1.5 rounded-full bg-emerald-500/80 shadow-[0_0_4px_currentColor]" />
+                <span className="text-[10px] font-medium">Live</span>
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
       {/* Main Canvas */}
       <div className="flex-1 relative overflow-hidden bg-tertiary">

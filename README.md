@@ -2,7 +2,7 @@
 
 A modern, high-performance **Mermaid.js** editor and viewer built with **React 19**, **Vite**, and **Tailwind CSS v4**.
 
-<img width="1624" height="1059" alt="Screenshot 2026-02-03 at 07 41 56" src="https://github.com/user-attachments/assets/cbb12d7d-8368-4796-ad6e-f9540179a00c" />
+<img width="1624" height="1059" alt="Screenshot 2026-02-04 at 22 49 00" src="https://github.com/user-attachments/assets/3796cf10-ccd0-4e43-af76-914326cb949d" />
 
 ## ✨ Features
 
